@@ -5,53 +5,53 @@
 # Updated: weekly (every Wednesday/Thursday for upcoming Sunday)
 
 schema_version: "1.0"
-last_updated: "2026-02-28"
+last_updated: "2026-03-12"
 updated_by: "bulletin-generator"
 
 bulletin:
-  issue_number: 1247
-  date: "2026-03-01"
-  church_name: "새벽이슬교회 (Morning Dew Church)"
+  issue_number: 1250
+  date: "2026-03-29"
+  church_name: "소망과사랑의교회"
 
   sermon:
-    title: "두려움을 넘어선 믿음 (Faith Beyond Fear)"
-    scripture: "요한복음 6:16-21 (John 6:16-21)"
+    title: "영생의 말씀 (Words of Eternal Life)"
+    scripture: "요한복음 6:60-71 (John 6:60-71)"
     preacher: "담임목사 (Senior Pastor)"
     series: "요한복음 강해 시리즈 (Gospel of John Exposition Series)"
-    series_episode: 18
+    series_episode: 21
 
   worship_order:
     - order: 1
       item: "예배의 부름 (Call to Worship)"
-      detail: "시편 95:1-7"
+      detail: "시편 118:19-29"
       performer: "인도자 (Worship Leader)"
     - order: 2
       item: "찬양 (Praise & Worship)"
-      detail: "주님 찬양해, 나 같은 죄인 살리신"
-      performer: "찬양팀B (Worship Team B)"
+      detail: "만왕의 왕 내 주께서, 예수 이름 높이어"
+      performer: "찬양팀A (Worship Team A)"
     - order: 3
       item: "교독문 (Responsive Reading)"
-      detail: "교독문 45번"
+      detail: "교독문 24번"
       performer: "인도자 (Worship Leader)"
     - order: 4
       item: "대표기도 (Representative Prayer)"
       detail: null
-      performer: "김철수 집사 (Deacon Kim Chulsoo)"
+      performer: "서동환 안수집사 (Ordained Deacon Seo Donghwan)"
     - order: 5
       item: "성경봉독 (Scripture Reading)"
-      detail: "요한복음 6:16-21"
-      performer: "이영희 권사 (Deaconess Lee Younghee)"
+      detail: "요한복음 6:60-71"
+      performer: "장선영 권사 (Deaconess Jang Sunyoung)"
     - order: 6
       item: "봉헌 (Offering)"
-      detail: "봉헌찬양: 주 하나님 지으신 모든 세계"
+      detail: "봉헌찬양: 나의 모든 삶의 행동"
       performer: null
     - order: 7
       item: "말씀 (Sermon)"
-      detail: "두려움을 넘어선 믿음 (Faith Beyond Fear)"
+      detail: "영생의 말씀 (Words of Eternal Life)"
       performer: "담임목사 (Senior Pastor)"
     - order: 8
       item: "찬양 (Hymn)"
-      detail: "찬송가 370장 — 예수 사랑하심은"
+      detail: "찬송가 145장 — 만왕의 왕 내 주께서"
       performer: "회중 (Congregation)"
     - order: 9
       item: "축도 (Benediction)"
@@ -59,58 +59,56 @@ bulletin:
       performer: "담임목사 (Senior Pastor)"
 
   announcements:
-    - id: "ANN-001"
-      category: "행사 (Event)"
-      title: "3월 구역모임 일정 (March Cell Group Schedule)"
-      content: "이번 주 수요일 오후 7시, 각 구역별 모임이 있습니다. 구역장님께 확인 바랍니다."
+    - id: "ANN-010"
+      category: "예배 (Worship)"
+      title: "종려주일 · 고난주간 안내 (Palm Sunday · Passion Week)"
+      content: "오늘은 종려주일입니다. 예수님의 예루살렘 입성을 기념하며, 고난주간이 시작됩니다. 3월 30일(월)부터 4월 4일(토)까지 고난주간 특별새벽기도회가 매일 오전 6시 소예배실에서 진행됩니다."
       priority: "high"
-      expires: "2026-03-04"
-    - id: "ANN-002"
-      category: "새신자 (Newcomer)"
-      title: "새신자 환영회 (Newcomer Welcome Reception)"
-      content: "예배 후 본당 로비에서 새신자 환영 다과 시간이 있습니다. 많은 참여 바랍니다."
-      priority: "normal"
-      expires: "2026-03-01"
-    - id: "ANN-003"
-      category: "선교 (Mission)"
-      title: "3월 선교헌금 특별주간 (March Mission Offering Special Week)"
-      content: "3월 8일-15일 동남아 선교사 파송을 위한 특별 선교헌금 주간입니다."
-      priority: "normal"
-      expires: "2026-03-15"
+      expires: "2026-03-29"
+    - id: "ANN-007"
+      category: "교육 (Education)"
+      title: "부활절 세례반 진행 중 (Easter Baptism Class In Progress)"
+      content: "4월 5일 부활절 세례를 준비하는 세례반이 진행 중입니다. 매주 주일 오후 1시, 교육관 2층에서 모입니다. 희망자는 교회 사무실에 문의해 주세요."
+      priority: "high"
+      expires: "2026-04-05"
+    - id: "ANN-008"
+      category: "행사 (Event)"
+      title: "부활절 연합예배 안내 (Easter Joint Service)"
+      content: "4월 5일(주일) 오전 10시, 부활절 연합예배가 1·2부 통합으로 진행됩니다. 세례식이 함께 거행되오니, 성도님들의 참석을 부탁드립니다."
+      priority: "high"
+      expires: "2026-04-05"
+    - id: "ANN-006"
+      category: "교육 (Education)"
+      title: "부활절 세례반 모집 오늘 마감 (Easter Baptism Class — DEADLINE TODAY)"
+      content: "세례반 등록이 오늘(3월 29일)에 마감됩니다. 아직 신청하지 않으신 분은 오늘 예배 후 교회 사무실에 신청해 주세요."
+      priority: "high"
+      expires: "2026-03-29"
 
   prayer_requests:
     - category: "교회 (Church)"
-      content: "3월 부흥회를 위한 성령의 역사를 간구합니다. (Pray for the March revival meeting)"
+      content: "종려주일을 맞아 고난주간 동안 주님의 십자가 고난과 부활의 의미를 깊이 묵상하는 교회가 되길 기도합니다. (As we enter Passion Week on Palm Sunday, pray that our church may deeply reflect on the meaning of Christ's suffering and resurrection)"
     - category: "국가 (Nation)"
-      content: "나라와 민족의 평화와 화합을 위해 기도합니다. (Intercessory prayer for national peace)"
+      content: "나라와 민족의 평화와 화합을 위해 기도합니다. (Intercessory prayer for national peace and reconciliation)"
     - category: "교인 (Members)"
-      content: "투병 중인 교우들의 빠른 회복을 위해 기도합니다. (Pray for recovering members)"
+      content: "투병 중인 교우들의 빠른 회복과 위로를 위해 기도합니다. (Pray for healing and comfort of members in illness)"
     - category: "선교 (Mission)"
-      content: "해외 선교사들의 사역과 건강을 위해 기도합니다. (Pray for overseas missionaries)"
+      content: "해외 선교사들의 사역과 건강을 위해 기도합니다. 특별히 동남아 파송 선교사 적응을 위해 기도합니다. (Pray for overseas missionaries, especially the newly dispatched Southeast Asia team)"
 
   offering_team:
-    - "박○○ 권사 (Deaconess Park)"
-    - "최○○ 집사 (Deacon Choi)"
-    - "한소영 집사 (Deacon Han Soyoung)"
+    - "윤민수 안수집사 (Ordained Deacon Yoon Minsu)"
+    - "신건우 집사 (Deacon Shin Gunwoo)"
+    - "조지은 집사 (Deacon Cho Jieun)"
 
   celebrations:
-    birthday:
-      - member_id: "M045"
-        name: "홍○○"
-        date: "03-03"
-      - member_id: "M001"
-        name: "김○○"
-        date: "03-15"
-    wedding_anniversary:
-      - family_id: "F025"
-        names: "홍길동 · 홍미나"
-        date: "03-10"
+    birthday: []
+    wedding_anniversary: []
 
   next_week:
-    sermon_title: "평화의 왕 (Prince of Peace)"
-    scripture: "요한복음 6:22-40 (John 6:22-40)"
+    sermon_title: "부활의 소망 (The Hope of Resurrection)"
+    scripture: "마태복음 28:1-10 (Matthew 28:1-10)"
     special_events:
-      - "3월 선교헌금 특별주간 시작 (March Mission Offering begins)"
+      - "부활절 연합예배 — 1·2부 통합 오전 10시 (Easter Joint Service — Combined 10:00 AM)"
+      - "부활절 세례식 (Easter Baptism Ceremony)"
 
 generation_history:
   - issue: 1245
@@ -125,3 +123,15 @@ generation_history:
     generated_at: "2026-02-28T19:00:00"
     generated_by: "bulletin-generator"
     output_path: "bulletins/2026-03-01-bulletin.md"
+  - issue: 1248
+    generated_at: "2026-03-12T12:00:00"
+    generated_by: "bulletin-generator"
+    output_path: "bulletins/2026-03-15-bulletin.md"
+  - issue: 1249
+    generated_at: "2026-03-12T15:00:00"
+    generated_by: "bulletin-generator"
+    output_path: "bulletins/2026-03-22-bulletin.md"
+  - issue: 1250
+    generated_at: "2026-03-12T16:00:00"
+    generated_by: "bulletin-generator"
+    output_path: "bulletins/2026-03-29-bulletin.md"

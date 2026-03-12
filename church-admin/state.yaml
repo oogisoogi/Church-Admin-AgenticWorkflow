@@ -4,9 +4,9 @@
 # This is the CHURCH ADMIN system SOT (separate from the build workflow SOT at project root)
 
 church:
-  name: "새벽이슬교회 (Morning Dew Church)"
+  name: "소망과사랑의교회"
   denomination: "PCK"
-  current_bulletin_issue: 1247
+  current_bulletin_issue: 1250
   status: "active"
 
   # Data file paths — central registry
@@ -32,34 +32,53 @@ church:
     bulletin:
       # Referenced by: weekly-bulletin.md (lines 69, 216, 417-449)
       # Referenced by: generate-bulletin.md (line 9)
-      last_generated_issue: 1247
-      last_generated_date: "2026-03-01"
-      next_due_date: "2026-03-08"
+      last_generated_issue: 1250
+      last_generated_date: "2026-03-29"
+      next_due_date: "2026-04-05"
       status: "completed"
     newcomer:
       # Referenced by: newcomer-pipeline.md (lines 262, 583)
-      total_active: 5
-      last_check_date: "2026-02-28"
+      total_active: 6
+      last_check_date: "2026-03-12"
+      last_report: "docs/generated/newcomer-status-report-2026-03.md"
       status: "idle"
     finance:
       # Referenced by: monthly-finance-report.md (lines 329, 537-538)
       # Referenced by: generate-finance-report.md (line 15)
       current_month: "2026-03"
-      next_due_month: "2026-03"           # workflow reads this field (line 538)
-      last_report_date: "2026-02-28"
+      next_due_month: "2026-04"           # workflow reads this field (line 538)
+      last_report_date: "2026-03-12"
       outputs:                             # workflow writes here (line 329)
         "2026-02": "docs/generated/2026-02-finance-report.md"
+        "2026-03": "docs/generated/2026-03-finance-report.md"
       status: "idle"
     schedule:
       # Referenced by: schedule-manager.md workflow
-      last_updated: "2026-02-28"
+      last_updated: "2026-03-12"
+      last_report: "docs/generated/schedule-monthly-2026-03.md"
       status: "idle"
     document:
       # Referenced by: document-generator.md workflow
-      last_generated: "2026-02-28"
-      last_document_type: "baptism_certificate"
-      last_output_path: "docs/generated/sample-baptism-certificate.md"
+      last_generated: "2026-03-12"
+      last_document_type: "official_letter"
+      last_output_path: "docs/generated/sample-official-letter.md"
+      generated_samples:
+        baptism_certificate: "docs/generated/sample-baptism-certificate.md"
+        ordination_certificate: "docs/generated/sample-ordination-certificate.md"
+        transfer_certificate: "docs/generated/sample-transfer-certificate.md"
+        meeting_minutes: "docs/generated/sample-meeting-minutes.md"
+        official_letter: "docs/generated/sample-official-letter.md"
+        donation_receipt: "docs/generated/sample-donation-receipt.md"
       status: "idle"
+
+  # Legal entity information (for receipts, official letters)
+  legal_info:
+    registration_number: "123-82-01234"
+    address: "서울시 마포구 성산로 123"
+    representative: "이성훈"
+    representative_title: "담임목사"
+    phone: "02-1234-5678"
+    bank_account: "국민은행 012-345-67-890123 (소망과사랑의교회)"
 
   # System configuration
   config:
@@ -107,26 +126,26 @@ church:
   # overwrite these entries with actual timestamps and action descriptions.
   agent_sessions:
     bulletin-generator:
-      last_active: null
-      last_action: "seed_setup: bulletin #1247 data populated by generate_seed_data.py"
+      last_active: "2026-03-12"
+      last_action: "generated bulletin #1250 for 2026-03-29"
     newcomer-tracker:
-      last_active: null
-      last_action: "seed_setup: 7 newcomer records created by generate_seed_data.py"
+      last_active: "2026-03-12"
+      last_action: "generated newcomer status report (8 records, 6 active)"
     member-manager:
-      last_active: null
-      last_action: "seed_setup: 42 member records created by generate_seed_data.py"
+      last_active: "2026-03-12"
+      last_action: "generated member directory summary (42 members, 39 active)"
     finance-recorder:
-      last_active: null
-      last_action: "seed_setup: 12-month finance data created by generate_seed_data.py"
+      last_active: "2026-03-12"
+      last_action: "generated 2026-03 monthly finance report"
     schedule-manager:
-      last_active: null
-      last_action: "seed_setup: schedule expanded by generate_seed_data.py"
+      last_active: "2026-03-12"
+      last_action: "generated 2026-03 monthly schedule summary"
     document-generator:
-      last_active: null
-      last_action: "seed_setup: sample baptism certificate created manually"
+      last_active: "2026-03-12"
+      last_action: "generated 6 sample documents (baptism, ordination, transfer, minutes, letter, receipt)"
     data-ingestor:
-      last_active: null
-      last_action: null
+      last_active: "2026-03-12"
+      last_action: "sample inbox files created (5 CSV + 2 TXT)"
     template-scanner:
       last_active: null
-      last_action: null
+      last_action: "4 templates available (bulletin, worship, receipt, denomination-report)"

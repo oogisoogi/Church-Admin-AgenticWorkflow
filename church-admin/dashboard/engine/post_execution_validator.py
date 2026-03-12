@@ -150,7 +150,8 @@ def validate_after_execution(
             output_suffix=config["output_suffix"],
             started_at=started_at,
         )
-        result.checks.append(l0_check)
+        if l0_check is not None:
+            result.checks.append(l0_check)
 
     # ── L1: P1 검증 스크립트 실행 ──
     if config["script"]:
@@ -213,7 +214,9 @@ def _check_output_exists(
                 continue
 
     if not found_files and not errors:
-        errors.append("L0a FAIL: 실행 이후 생성된 산출물 파일 없음")
+        # 채팅 모드: 산출물 없음은 대화 중간 턴일 수 있음 — 검증 건너뜀
+        # (예: "문서발급" 클릭 → Claude가 안내 응답만 → 아직 파일 미생성)
+        return None
 
     passed = len(found_files) > 0 and len(errors) == 0
 

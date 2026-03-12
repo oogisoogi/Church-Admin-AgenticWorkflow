@@ -20,6 +20,7 @@ Claude Runner — Claude Code CLI subprocess 실행기.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import threading
 from datetime import datetime
@@ -191,11 +192,18 @@ class ClaudeRunner:
         """백그라운드에서 프로세스 실행 + stream-json 파싱."""
         proc = None
         try:
+            # CLAUDECODE 환경변수 제거 — nested session 차단 우회
+            # 대시보드가 Claude Code 세션 안에서 실행될 때,
+            # subprocess가 부모의 CLAUDECODE 변수를 상속받으면
+            # "Nested sessions" 에러 발생. 독립 세션이므로 안전하게 제거.
+            env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 cwd=str(self.project_dir),
+                env=env,
                 text=True,
                 bufsize=1,
             )

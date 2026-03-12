@@ -1,4 +1,4 @@
-# 새벽이슬교회 (Morning Dew Church)
+# 소망과사랑의교회
 # 2026년 2월 월간 재정 보고서 (February 2026 Monthly Finance Report)
 
 **보고기간**: 2026년 2월 1일 ~ 2026년 2월 28일

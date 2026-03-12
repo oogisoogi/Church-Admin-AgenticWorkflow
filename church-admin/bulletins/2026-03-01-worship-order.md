@@ -1,4 +1,4 @@
-# 새벽이슬교회 (Morning Dew Church)
+# 소망과사랑의교회
 # 예배 순서지 (Worship Order Sheet)
 
 **2026년 3월 1일 주일예배** | 제 1247호

@@ -232,10 +232,35 @@ AgenticWorkflow/
 > **PreToolUse Safety Hook의 독립 실행 근거**: `block_destructive_commands.py`(안전)와 `block_test_file_edit.py`(TDD 보호)는 컨텍스트 보존과는 다른 도메인이다. exit code 2 보존이 필수이므로, `context_guard.py`를 거치지 않고 직접 실행한다. `block_test_file_edit.py`는 `.tdd-guard` 파일 존재 시에만 활성화된다 (`touch .tdd-guard`로 TDD 모드 시작, `rm .tdd-guard`로 해제).
 > **D-7 의도적 중복 인스턴스**: (1) `REQUIRED_SCRIPTS` — `setup_init.py` ↔ `setup_maintenance.py` (19개 스크립트 목록). (2) `predictive_debug_guard.py` 상수 — `RISK_THRESHOLD`/`MIN_SESSIONS` ↔ `_context_lib.py`의 `_RISK_SCORE_THRESHOLD`/`_RISK_MIN_SESSIONS`. (3) `ERROR_TAXONOMY` 타입명 — `_classify_error_patterns()` 내 12개 타입 ↔ `_RISK_WEIGHTS` 13개 키. (4) ULW 감지 패턴 — `_context_lib.py`의 `_gather_retry_history()` ↔ `validate_retry_budget.py`의 `_ULW_SNAPSHOT_RE` ↔ `restore_context.py`의 ULW 상태 문자열 검사 (모두 `"ULW 상태"` 기반). (5) 재시도 한도 상수 — `validate_retry_budget.py`의 `DEFAULT_MAX_RETRIES`/`ULW_MAX_RETRIES` ↔ `_context_lib.py`의 `_DEFAULT_MAX_RETRIES`/`_ULW_MAX_RETRIES` ↔ `restore_context.py`의 ULW+Autopilot 주입 텍스트. 각 D-7 인스턴스는 코드에 cross-reference 주석이 있으며, 한쪽 변경 시 반드시 대응 쪽도 동기화해야 한다.
 
+## Church Admin 시작 라우팅 (최우선 규칙)
+
+> **이 규칙은 컨텍스트 복원, 세션 분석, 워크플로우 상태 확인보다 우선한다.**
+> 아래 패턴이 사용자 입력에 포함되면, **다른 모든 행동보다 먼저** `/start` 명령을 실행한다.
+
+### 트리거 패턴
+
+"시작", "시작하자", "시작해줘", "시작합니다", "워크플로우 시작", "워크플로우를 시작하자", "작업을 시작하자", "start", "let's start", "begin", "get started", "메뉴", "메뉴 보여줘", "도움말", "처음", "다시 시작", "뭐 할 수 있어?", 또는 구체적 작업 지시 없는 인사말
+
+### 실행 흐름
+
+1. `cd church-admin && python3 scripts/start_router.py --state state.yaml` 실행
+2. `display.welcome_banner` 를 **수정 없이 그대로** 출력
+3. `AskUserQuestion`으로 `display.mode_options` 표시 — 선택지 추가/수정 금지
+4. 모드 분기: CLI → `show_menu.py` 기능 메뉴 / 대시보드 → Streamlit 안내
+
+상세: `.claude/commands/start.md`
+
+### 절대 금지
+
+- "시작하자" 입력에 대해 AskUserQuestion으로 "무엇을 하시겠습니까?" 같은 자체 질문을 만드는 행위
+- "시작하자" 입력에 대해 시스템 설명, 분석, 또는 이전 세션 복원으로 응답하는 행위
+- `start_router.py` 실행 없이 메뉴를 직접 구성하는 행위
+
 ## 스킬 사용 판별
 
 | 사용자 요청 패턴 | 스킬 | 진입점 |
 |----------------|------|--------|
+| "시작", "시작하자", "start", "메뉴", "처음" 등 시작 패턴 | `church-admin` | `/start` → `start_router.py` → 모드 선택 |
 | "워크플로우 만들어줘", "자동화 파이프라인 설계", "작업 흐름 정의" | `workflow-generator` | SKILL.md → 케이스 판별 |
 | "논문 스타일로 써줘", "학술적 글쓰기", "논문 문장 다듬기" | `doctoral-writing` | SKILL.md → 맥락 파악 |
 

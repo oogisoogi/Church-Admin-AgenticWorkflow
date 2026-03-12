@@ -150,6 +150,28 @@ The Korean natural language interface is defined in `.claude/skills/church-admin
 | Document Generator | `workflows/document-generator.md` | "증명서 발급" |
 | Schedule Manager | `workflows/schedule-manager.md` | "행사 등록" |
 
+## Dashboard (Streamlit Web UI)
+
+Non-technical users (행정 간사, 담임 목사) can use the system via web browser:
+
+```bash
+streamlit run dashboard/app.py
+```
+
+### Architecture
+
+| Component | Role | SOT Access |
+|-----------|------|-----------|
+| `dashboard/app.py` | Main app — feature cards, progress, results | Read-only |
+| `engine/claude_runner.py` | `claude -p` subprocess execution | Read-only |
+| `engine/sot_watcher.py` | `state.yaml` real-time polling | Read-only |
+| `engine/context_builder.py` | Cold Start solver — AST rule extraction + `--append-system-prompt` | Read-only |
+| `engine/post_execution_validator.py` | P1 independent verification — runs `validate_*.py` outside LLM | Read-only |
+| `engine/command_bridge.py` | NL routing (41 Korean patterns) | Read-only |
+| `components/hitl_panel.py` | HitL approval UI with P1 validation signal | Read-only |
+
+**Design principles**: Dashboard is read-only against SOT. Zero modification to existing hooks/agents/skills. Post-Execution Validator runs P1 checks independently of LLM output (hallucination prevention).
+
 ## Inherited DNA
 
 This system inherits the full AgenticWorkflow genome:
@@ -160,3 +182,4 @@ This system inherits the full AgenticWorkflow genome:
 - **Context Preservation**: Snapshots, knowledge archives, RLM pattern
 - **Adversarial Review**: Generator-Critic pattern for output quality
 - **Coding Anchor Points**: CAP-1 (think before code), CAP-2 (simplicity), CAP-3 (goal-based), CAP-4 (surgical changes)
+- **Dashboard P1 Prevention**: Post-execution independent validation outside LLM control

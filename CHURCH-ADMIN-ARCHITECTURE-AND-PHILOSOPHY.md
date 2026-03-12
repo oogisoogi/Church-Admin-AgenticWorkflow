@@ -106,6 +106,38 @@ Step 3: AskUserQuestion 대화형 메뉴       ← 2페이지 구성 (3+4 항목
 
 **설계 근거**: 교회 행정 간사는 개발 배경이 없다. "무엇을 도와드릴까요?"라는 개방형 질문보다, 현재 상태에 기반한 구체적 선택지를 제시하는 것이 오류율을 줄이고 접근성을 높인다. Dead-end(사용자가 막히는 상황)가 발생하면 항상 시작 메뉴로 라우팅된다.
 
+### 1.6 비주얼 대시보드: 비기술 사용자를 위한 웹 인터페이스
+
+CLI(명령줄 인터페이스)는 IT 자원봉사자에게는 적합하지만, 행정 간사나 담임 목사에게는 접근 장벽이다. Streamlit 기반 대시보드는 **웹 브라우저에서 클릭만으로** 모든 기능을 사용할 수 있게 한다.
+
+```
+사용자 → 브라우저 → 대시보드 (Streamlit)
+    ↓
+기능 카드 클릭 (주보, 재정, 새신자, ...)
+    ↓
+Context Builder → Cold Start 해결 (SOT + 이전 이력 + 검증 기준 주입)
+    ↓
+Claude Code subprocess (claude -p --append-system-prompt)
+    ↓
+SOT Watcher → 실시간 진행 표시 (state.yaml 폴링)
+    ↓
+Post-Execution Validator → P1 독립 검증 (LLM 밖 Python 직접 실행)
+    ↓
+결과 표시 + HitL 승인 (재정 등 고위험 워크플로우)
+```
+
+**핵심 설계 결정**:
+
+| 원칙 | 대시보드 적용 |
+|------|------------|
+| **SOT 규율 준수** | 대시보드는 `state.yaml`을 읽기 전용으로만 접근 — Orchestrator만 쓰기 |
+| **기존 코드 수정 0건** | `dashboard/`만 신규 추가 — 기존 hooks, agents, skills 미수정 |
+| **할루시네이션 봉쇄** | Post-Execution Validator가 LLM 밖에서 `validate_*.py`를 직접 실행 |
+| **Cold Start 해결** | Context Builder가 AST로 검증 규칙을 동적 추출하여 subprocess에 주입 |
+| **RLM 패턴 보존** | 부모의 RLM과 병렬 계층 — `state.yaml → build_context → subprocess → validate` |
+
+**설계 근거**: subprocess(`claude -p`)는 매번 zero context로 시작한다. Context Builder가 SOT 상태, 이전 실행 이력, 검증 기준, 도메인 제약을 `--append-system-prompt`로 주입하여 첫 시도부터 최고 품질을 보장한다.
+
 ---
 
 ## 2. 유전된 DNA와 유전자 발현 (Inherited DNA & Gene Expression)
@@ -147,11 +179,11 @@ Step 3: AskUserQuestion 대화형 메뉴       ← 2페이지 구성 (3+4 항목
 ┌─────────────────────────────────────────────────────────────┐
 │                   사용자 인터페이스 계층                       │
 │                                                               │
-│   inbox/ 파일 드롭 │ Slash Commands │ 한국어 자연어 인터페이스  │
-│   (Excel, PDF,    │ /start         │ "주보 만들어줘"          │
-│    이미지)         │ /generate-*    │ "새신자 등록"            │
-│                   │ /system-status │ "시작하자"               │
-│                   │ /validate-all  │                          │
+│   Streamlit 대시보드│ inbox/ 파일 드롭│ Slash Commands          │
+│   (웹 UI — 기능   │ (Excel, PDF,   │ /start                  │
+│    카드 클릭)      │  이미지)        │ /generate-*             │
+│                   │                │ 한국어 자연어 인터페이스   │
+│                   │                │ "주보 만들어줘"           │
 └────────┬───────────────────┬────────────────┬────────────────┘
          │                   │                │
 ┌────────▼───────────────────▼────────────────▼────────────────┐
@@ -534,6 +566,23 @@ inbox/{파일}
 - 테스트 범위: 주보 파이프라인, 새신자 파이프라인, 재정 워크플로우, 스캔-복제, 교차 워크플로우 참조, 데이터 무결성, 오류 처리, HitL 게이트, Autopilot 동작, 규모 구조, 한국어 인코딩, 백업/복원, 교인 관리, NL 인터페이스, 일정 관리
 
 상세: [`testing/integration-test-report.md`](testing/integration-test-report.md)
+
+### 8.4 대시보드 P1 할루시네이션 봉쇄
+
+대시보드는 Claude subprocess가 exit code 0으로 종료해도, 그것이 "산출물이 유효하다"를 의미하지 않는다는 전제 아래 설계되었다.
+
+**Post-Execution Validator** (`dashboard/engine/post_execution_validator.py`):
+
+| 검증 계층 | 검증 내용 | 방법 |
+|----------|---------|------|
+| **L0 Anti-Skip Guard** | 산출물 파일 존재 + 최소 100 bytes + 비-공백 | Python `pathlib` — LLM 무개입 |
+| **P1 검증 스크립트** | 기존 `validate_*.py` 29개 규칙 실행 | `subprocess.run()` → JSON 파싱 — LLM 무개입 |
+
+**Context Builder** (`dashboard/engine/context_builder.py`):
+
+Cold Start 문제를 해결하기 위해 검증 규칙을 Python AST로 스크립트 docstring에서 동적 추출한다. 하드코딩 대신 AST 파싱을 사용하여 D-7 드리프트(검증 스크립트 변경 시 대시보드와 불일치)를 원천 제거한다.
+
+**HitL 검증 신호**: 재정 보고서 등 HitL 워크플로우에서, 승인 패널에 P1 검증 PASS/FAIL을 기계적 신호로 표시하여 사용자가 검증 없이 산출물만 보고 승인하는 것을 방지한다.
 
 ---
 

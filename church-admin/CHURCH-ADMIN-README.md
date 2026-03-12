@@ -36,6 +36,7 @@
 | **스캔-복제 엔진** | 7종 교회 문서(주보, 영수증, 순서지, 공문, 회의록, 증서, 초청장) 템플릿화 |
 | **재정 안전 장치** | 재정 Autopilot 영구 비활성화 — 3중 강제(SOT + 에이전트 + 워크플로우) |
 | **Hook 인프라** | 3개 Hook (PreToolUse 단독작성자 강제, PostToolUse YAML 검증, Setup 건강검사) — `.claude/settings.json` |
+| **Streamlit 대시보드** | 비기술 사용자(행정 간사)를 위한 웹 UI — 기능 카드 클릭, 실시간 진행 표시, P1 독립 검증, HitL 승인 패널 |
 | **한국 교회 용어 사전** | 50+ 용어(직분, 치리, 예배, 재정, 성례, 새신자, 문서) 정규화 |
 
 ## 빠른 시작
@@ -59,6 +60,10 @@ claude                     # 시스템 시작
 "이번 달 재정 보고서"         # 월별 재정 보고서
 "교인 검색 김철수"            # 교인 검색
 "데이터 검증"                # 전체 P1 검증 실행
+
+# 5. 또는 Streamlit 대시보드로 실행
+cd church-admin
+streamlit run dashboard/app.py     # 웹 UI에서 모든 기능 사용
 ```
 
 > **Mandatory Start Menu**: 구체적 작업 지시 없는 인사말이나 "시작" 계열 명령은 자동으로 `show_menu.py` 실행 → 현재 상태 기반 대화형 메뉴(`AskUserQuestion`)를 표시합니다. CLI 경험 없는 사용자도 메뉴에서 선택만으로 모든 기능에 접근할 수 있습니다.
@@ -121,6 +126,21 @@ church-admin/
 │   ├── query_church_data.py        # 데이터 조회 유틸리티
 │   ├── generate_seed_data.py       # 시드 데이터 생성
 │   └── daily-backup.sh             # 자동 백업 스크립트
+├── dashboard/                     # Streamlit 대시보드 (비기술 사용자용 웹 UI)
+│   ├── app.py                     # 메인 앱 (기능 카드, 진행 표시, 결과 패널)
+│   ├── engine/                    # 실행 엔진
+│   │   ├── claude_runner.py       # Claude Code subprocess 실행기
+│   │   ├── sot_watcher.py         # state.yaml 실시간 폴링
+│   │   ├── command_bridge.py      # NL 라우팅 (41개 패턴)
+│   │   ├── context_builder.py     # Cold Start 해결 (AST 동적 규칙 추출)
+│   │   ├── post_execution_validator.py  # P1 독립 검증 (할루시네이션 봉쇄)
+│   │   └── stream_parser.py       # stream-json 이벤트 파서
+│   ├── components/                # UI 컴포넌트
+│   │   ├── status_panel.py        # SOT 상태 요약
+│   │   ├── progress_panel.py      # 실시간 진행 표시
+│   │   ├── result_panel.py        # 산출물 렌더링
+│   │   └── hitl_panel.py          # HitL 승인 UI (P1 검증 신호 포함)
+│   └── requirements.txt           # streamlit 의존성
 ├── workflows/                      # 5개 독립 워크플로우 (영문 + 한국어)
 │   ├── weekly-bulletin.md (+.ko.md)
 │   ├── newcomer-pipeline.md (+.ko.md)
@@ -178,6 +198,7 @@ church-admin/
 | **Context Preservation** | 스냅샷 + Knowledge Archive + RLM 복원 |
 | **코딩 기준점 (CAP)** | CAP-1 사고 우선, CAP-2 단순성, CAP-3 목표 기반, CAP-4 외과적 변경 |
 | **Mandatory Start Menu** | 인사말·시작 명령 시 `show_menu.py` → 상태 기반 대화형 메뉴 자동 표시 |
+| **대시보드 P1 봉쇄** | 대시보드가 LLM 밖에서 Python으로 직접 P1 검증 실행 — 할루시네이션 원천봉쇄 |
 
 ## 구축 과정
 

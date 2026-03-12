@@ -18,20 +18,136 @@
 
 ### 교회 행정 AI 에이전트 자동화 시스템
 
-한국 중소형 교회(100-500명)를 위한 AI 기반 행정 자동화 시스템. 주보 제작, 새신자 관리, 재정 보고, 문서 발급, 일정 관리 등 주당 23시간의 수동 행정 업무를 5시간 이하로 줄입니다.
+**한국 중소형 교회(100-500명)를 위한 AI 기반 행정 자동화 시스템.**
 
-- **5개 독립 워크플로우** — 주보, 새신자, 재정, 문서, 일정
-- **8개 전문 에이전트** — 데이터 파일당 단독 작성자
-- **29개 P1 검증 규칙** — 결정론적 데이터 무결성
-- **한국어 자연어 인터페이스** — 41개 명령 패턴 + 대화형 시작 메뉴
-- **5개 Slash Commands** — `/start`, `/generate-bulletin`, `/generate-finance-report`, `/system-status`, `/validate-all`
-- **3개 Hook** — 단독작성자 강제, YAML 검증, 인프라 건강검사
+주보 제작, 새신자 관리, 재정 보고, 문서 발급, 일정 관리 등 반복적인 교회 행정 업무를 AI 에이전트가 자동 수행하여, 주당 23시간의 수동 행정 업무를 5시간 이하로 줄입니다.
+
+#### 해결하는 문제
+
+| 업무 | 주당 소요 시간 | 자동화 후 |
+|------|-------------|---------|
+| 주보 제작 | ~4시간 | ~15분 (AI 생성 + 1회 검토) |
+| 새신자 등록·관리 | ~3시간 | ~30분 (파이프라인 자동화) |
+| 재정 기록·보고 | ~6시간 | ~2시간 (이중 검토 유지) |
+| 증명서·공문 발급 | ~3시간 | ~15분 (템플릿 기반 자동 생성) |
+| 일정 관리 | ~2시간 | ~15분 (충돌 자동 감지) |
+| 기타 데이터 정리 | ~5시간 | ~1시간 (자동 수집·검증) |
+| **합계** | **~23시간** | **~4시간 15분** |
+
+#### 핵심 역량
+
+| 역량 | 상세 |
+|------|------|
+| **5개 독립 워크플로우** | 주보 생성, 새신자 파이프라인, 월별 재정 보고, 문서 발급, 일정 관리 |
+| **8개 전문 에이전트** | 각 데이터 파일에 대한 단독 쓰기 권한 — 데이터 충돌 원천 차단 |
+| **29개 결정론적 검증 규칙** | P1 검증 스크립트 5개 (Members M1-M7, Finance F1-F7, Schedule S1-S6, Newcomers N1-N6, Bulletin B1-B3) |
+| **한국어 자연어 인터페이스** | 41개 한국어 명령 패턴 → 8개 카테고리 + 대화형 시작 메뉴(`AskUserQuestion`) |
+| **5개 Slash Commands** | `/start` (시작 메뉴), `/generate-bulletin` (주보), `/generate-finance-report` (재정), `/system-status` (건강 검사), `/validate-all` (검증) |
+| **3계층 수신함 파이프라인** | Tier A: Excel/CSV, Tier B: Word/PDF, Tier C: 이미지 — 자동 파싱 + 신뢰도 점수 |
+| **스캔-복제 엔진** | 7종 교회 문서(주보, 영수증, 순서지, 공문, 회의록, 증서, 초청장) 템플릿화 |
+| **재정 안전 장치** | 재정 Autopilot 영구 비활성화 — 3중 강제(SOT + 에이전트 + 워크플로우) |
+| **Hook 인프라** | 3개 Hook (PreToolUse 단독작성자 강제, PostToolUse YAML 검증, Setup 건강검사) — `.claude/settings.json` |
+| **Streamlit 대시보드** | 비기술 사용자(행정 간사)를 위한 웹 UI — 기능 카드 클릭, 실시간 진행 표시, P1 독립 검증, HitL 승인 패널 |
+| **한국 교회 용어 사전** | 50+ 용어(직분, 치리, 예배, 재정, 성례, 새신자, 문서) 정규화 |
+
+#### 빠른 시작
+
+```bash
+# 1. 저장소 클론
+git clone https://github.com/idoforgod/AgenticWorkflow.git
+cd AgenticWorkflow/church-admin
+
+# 2. 인프라 검증 + Claude Code 실행
+claude --init              # 사전 검증 (CA-1 ~ CA-8)
+claude                     # 시스템 시작
+
+# 3. "시작" 입력 → 대화형 메뉴 자동 표시
+"시작"                      # → 상태 수집 + 환영 배너 + 대화형 메뉴
+
+# 4. 또는 한국어로 직접 명령
+"주보 만들어줘"              # 주보 생성
+"새신자 등록"                # 새신자 파이프라인 시작
+"이번 달 재정 보고서"         # 월별 재정 보고서
+
+# 5. 또는 Streamlit 대시보드로 실행
+streamlit run dashboard/app.py     # 웹 UI에서 모든 기능 사용
+```
+
+#### 프로젝트 구조
+
+```
+church-admin/
+├── CLAUDE.md                       # 시스템 지시서 (에이전트 로스터, SOT 규칙, 데이터 정책)
+├── state.yaml                      # SOT — 시스템 전체 상태
+├── data/                           # 6개 YAML 데이터 파일
+│   ├── members.yaml                # 교인 명부 (HIGH — PII)
+│   ├── finance.yaml                # 재정 기록 (HIGH — 금융)
+│   ├── schedule.yaml               # 일정 (LOW)
+│   ├── newcomers.yaml              # 새신자 (HIGH — PII)
+│   ├── bulletin-data.yaml          # 주보 데이터 (LOW)
+│   └── church-glossary.yaml        # 한국 교회 용어 사전 (LOW, append-only)
+├── .claude/
+│   ├── settings.json               # Hook 인프라
+│   ├── agents/                     # 8개 전문 에이전트
+│   ├── commands/                   # 5개 Slash Commands
+│   ├── hooks/scripts/              # P1 검증 + 데이터 보호 Hook
+│   └── skills/church-admin/        # 한국어 자연어 인터페이스 (41개 패턴)
+├── scripts/                        # 파서, 검증, 유틸리티 스크립트
+├── dashboard/                      # Streamlit 대시보드 (비기술 사용자용 웹 UI)
+│   ├── app.py                      # 메인 앱 (기능 카드, 진행 표시, 결과 패널)
+│   ├── engine/                     # 실행 엔진 (claude_runner, sot_watcher, context_builder, post_execution_validator)
+│   └── components/                 # UI 컴포넌트 (status, progress, result, hitl_panel)
+├── workflows/                      # 5개 독립 워크플로우 (영문 + 한국어)
+├── templates/                      # 4개 문서 YAML 템플릿
+├── inbox/                          # 3계층 파이프라인 수신함
+├── docs/                           # 운영 가이드 (영문 + 한국어 쌍)
+├── bulletins/                      # 생성된 주보 + 순서지
+└── output/                         # 기타 출력물 (보고서, 증서, 공문)
+```
+
+#### 데이터 민감도
+
+| 민감도 | 데이터 파일 | 정책 |
+|--------|-----------|------|
+| **HIGH (PII)** | `members.yaml`, `newcomers.yaml` | `.gitignore` — 공개 금지, Soft-delete only |
+| **HIGH (금융)** | `finance.yaml` | `.gitignore` — 공개 금지, Void-only 삭제 |
+| LOW | `schedule.yaml`, `bulletin-data.yaml`, `church-glossary.yaml` | 버전 관리 |
+
+#### 유전받은 DNA
+
+| DNA 구성 요소 | 교회 행정에서의 발현 |
+|-------------|-----------------|
+| **절대 기준** | 품질 절대주의 → 주보·재정 보고서 오류 제로 |
+| **단일 파일 SOT** | `state.yaml` + 6개 데이터 파일, 각각 단독 쓰기 에이전트 |
+| **4계층 품질 보장** | L0 Anti-Skip → L1 Verification → L1.5 pACS → L2 Adversarial Review |
+| **P1 할루시네이션 봉쇄** | 5개 결정론적 검증 스크립트(29개 규칙) |
+| **안전 Hook** | 단독작성자 강제, YAML 구문검증, 인프라 건강검사 |
+| **Context Preservation** | 스냅샷 + Knowledge Archive + RLM 복원 |
+| **대시보드 P1 봉쇄** | 대시보드가 LLM 밖에서 Python으로 직접 P1 검증 — 할루시네이션 원천봉쇄 |
+
+#### 구축 과정
+
+14단계 워크플로우로 구축:
+
+| 단계 | 내용 | 산출물 |
+|------|------|--------|
+| 1-2 | **Research** — 도메인 분석 + 문서 템플릿 분석 | 도메인 지식, 용어 사전, 템플릿 카탈로그 |
+| 3 | 리서치 검토 (human gate) | 승인 |
+| 4-5 | **Planning** — 데이터 스키마 설계 + 시스템 아키텍처 | 6개 스키마, 10개 에이전트 스펙 |
+| 6 | 아키텍처 승인 (human gate) | 승인 |
+| 7-9 | **Implementation M1** — 인프라 + P1 검증 + 핵심 기능 | 디렉터리, 시드 데이터, 검증 스크립트, 워크플로우 |
+| 10 | M1 검토 (human gate) | 승인 |
+| 11 | **Implementation M2** — 확장 기능 | 문서 발급, 일정 관리, 교단 지원 |
+| 12-14 | 통합 테스트 + 문서화 + 최종 검수 | 15/15 PASS, IT 온보딩, 인수 완료 |
+
+#### 문서
 
 | 문서 | 내용 |
 |------|------|
 | [`CHURCH-ADMIN-README.md`](CHURCH-ADMIN-README.md) | 시스템 개요, 핵심 역량, 빠른 시작 |
 | [`CHURCH-ADMIN-ARCHITECTURE-AND-PHILOSOPHY.md`](CHURCH-ADMIN-ARCHITECTURE-AND-PHILOSOPHY.md) | 설계 철학, 아키텍처, 데이터·에이전트·안전 구조 |
 | [`CHURCH-ADMIN-USER-MANUAL.md`](CHURCH-ADMIN-USER-MANUAL.md) | 시스템 관리자(IT 자원봉사자) 운영·유지보수 |
+| [`church-admin/docs/`](church-admin/docs/) | 최종 사용자 운영 가이드 (빠른 시작, 사용법, 문제 해결) |
 
 > `AGENTICWORKFLOW-*.md` = **프레임워크/방법론** 문서, `CHURCH-ADMIN-*.md` = **도메인 특화 시스템** 문서
 
@@ -82,6 +198,7 @@ AgenticWorkflow/
 │   ├── data/               # 6개 YAML 데이터 파일
 │   ├── .claude/agents/     # 8개 전문 에이전트
 │   ├── scripts/            # 파서, 검증, 백업 스크립트
+│   ├── dashboard/          # Streamlit 대시보드 (웹 UI + P1 독립 검증 엔진)
 │   ├── workflows/          # 5개 독립 워크플로우
 │   ├── templates/          # 문서 YAML 템플릿
 │   ├── inbox/              # 3계층 파이프라인 수신함

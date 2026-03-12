@@ -14,6 +14,7 @@
 
 이 프로젝트는 자식 agentic workflow system을 생성하는 부모 유기체이다.
 모든 자식 시스템은 부모의 전체 게놈(절대 기준, SOT, 4계층 검증, Safety Hook 등)을 구조적으로 내장한다.
+현재 자식 시스템: 교회 행정 AI 시스템 (`church-admin/`) — CLI + Streamlit 대시보드 이중 인터페이스.
 상세: `soul.md`, `AGENTS.md §1`.
 
 ## 절대 기준 (핵심 요약)

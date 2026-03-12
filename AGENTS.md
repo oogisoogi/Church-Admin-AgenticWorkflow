@@ -33,6 +33,7 @@ AgenticWorkflow는 자식 agentic workflow system을 낳는 **부모 유기체**
 | Adversarial Review | `@reviewer` + `@fact-checker` Generator-Critic 패턴 |
 | Decision Log | 자동 승인 결정의 근거 기록 |
 | Context Preservation | 세션 간 기억 보존 + Knowledge Archive + RLM 패턴 |
+| Dashboard P1 봉쇄 | LLM 밖 Python 직접 검증 — 대시보드 독립 P1 검증 계층 |
 
 > 유전은 선택이 아니라 **구조**다. 자식은 부모의 DNA를 "참고"하는 것이 아니라 **내장**한다. 상세: `soul.md §0`.
 

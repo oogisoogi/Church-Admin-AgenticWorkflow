@@ -681,6 +681,27 @@
 - **대안**: (1) 무한 재시도(경로 C) — 기각 (I-3 안전장치 해제, 무한 루프 위험). (2) 중간 상향(경로 A, 5/7) — 기각 (사용자가 경로 B 선택)
 - **관련 파일**: `validate_retry_budget.py`, `_context_lib.py`, `restore_context.py`, `setup_maintenance.py`, `CLAUDE.md`, `AGENTS.md`, `ARCHITECTURE.md`, Spoke 3개, `translator.md`, `fact-checker.md`, `maintenance.md`, `claude-code-patterns.md`, `state.yaml.example`
 
+### ADR-049: Church Admin Streamlit 대시보드 — 비기술 사용자 웹 UI + P1 독립 검증
+
+- **날짜**: 2026-03-12
+- **상태**: Accepted
+- **맥락**: 교회 행정 시스템의 최종 사용자(행정 간사, 담임 목사)는 CLI 경험이 없다. `claude` CLI 실행은 IT 자원봉사자에게도 진입 장벽이다. 동시에, Claude subprocess가 exit code 0으로 종료해도 산출물이 유효하다는 보장이 없는 할루시네이션 위험이 존재했다.
+- **결정**: Streamlit 기반 웹 대시보드를 `dashboard/` 디렉터리에 신규 추가한다. 3가지 핵심 엔진을 포함:
+  1. **Context Builder** — AST로 검증 스크립트 docstring에서 규칙을 동적 추출하여 Cold Start 문제 해결 (`--append-system-prompt` 주입)
+  2. **Post-Execution Validator** — LLM 밖에서 Python이 직접 `validate_*.py` 실행하여 P1 할루시네이션 봉쇄
+  3. **HitL Panel** — 재정 등 고위험 워크플로우의 승인 UI에 기계적 P1 검증 신호 표시
+- **근거**:
+  - 기존 코드 수정 0건 원칙 — `dashboard/`만 신규 추가, hooks/agents/skills 미수정
+  - SOT 규율 준수 — 대시보드는 `state.yaml` 읽기 전용 접근만
+  - RLM 패턴 보존 — 부모의 RLM과 병렬 계층으로 공존 (`state.yaml → build_context → subprocess → validate`)
+  - 할루시네이션 봉쇄 — exit code 0을 맹신하지 않고 독립적 P1 검증
+- **대안**:
+  - React/Next.js SPA → 기각 (과도한 프론트엔드 의존성, 빌드 파이프라인 필요)
+  - Gradio → 기각 (Streamlit이 데이터 앱에 더 적합, 레이아웃 유연성)
+  - CLI만 유지 → 기각 (비기술 사용자 접근 불가, 사용자 요구사항 미충족)
+- **관련 커밋**: `ecf71c8` feat: add Streamlit dashboard with P1 hallucination prevention layer
+- **관련 파일**: `dashboard/app.py`, `dashboard/engine/context_builder.py`, `dashboard/engine/post_execution_validator.py`, `dashboard/components/hitl_panel.py`
+
 ---
 
 ## 부록: 커밋 히스토리 기반 타임라인
@@ -720,6 +741,7 @@
 | 2026-02-23 | (pending) | ADR-046: G3 — 도메인 지식 구조 (Domain Knowledge Structure) |
 | 2026-02-23 | (pending) | ADR-047: Abductive Diagnosis Layer — 품질 게이트 FAIL 시 구조화된 진단 |
 | 2026-02-23 | accepted | ADR-048: 전수조사 기반 시스템 일관성 강화 — 재시도 한도 10/15 + P1 doc-code sync + D-7 #5 |
+| 2026-03-12 | `ecf71c8` | ADR-049: Church Admin Streamlit 대시보드 — 웹 UI + Context Builder + Post-Execution Validator + HitL P1 신호 |
 
 ---
 

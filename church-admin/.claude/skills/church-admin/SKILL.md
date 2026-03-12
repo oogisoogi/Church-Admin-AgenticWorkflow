@@ -17,12 +17,15 @@ This skill activates when the user issues church administration commands in Kore
 
 ## CRITICAL — Start Menu Rule
 
-**When the user types a startup pattern (시작, 시작하자, 메뉴, etc.), you MUST:**
-1. Run `python3 scripts/show_menu.py --state state.yaml --data-dir data/` FIRST
-2. Display the welcome screen with status from the script output
-3. Show `AskUserQuestion` with the top 4 menu items from the script output
+**When the user types a startup pattern (시작, 시작하자, 메뉴, etc.), you MUST route to the `/start` command.** The `/start` command (defined in `.claude/commands/start.md`) handles the complete execution flow:
 
-**This is NOT optional.** Users who type "시작하자" do not know what the system can do. The menu is their only guide. Never skip the menu, never just describe capabilities — always show the interactive AskUserQuestion menu.
+1. `start_router.py` → 시스템 건강 점검 + 모드 선택 (P1 display blocks)
+2. 대화형 모드(CLI) 선택 시 → `show_menu.py` → 기능 메뉴 표시
+3. 대시보드 모드(Web UI) 선택 시 → Streamlit 실행 안내
+
+**This is NOT optional.** Users who type "시작하자" do not know what the system can do. The menu is their only guide. Never skip the menu, never just describe capabilities — always route to `/start` for the interactive flow.
+
+> **실행 순서의 단일 정의 지점**: 시작 흐름의 세부 실행 순서는 `start.md`에서만 정의한다. SKILL.md는 라우팅만 담당한다. English patterns ("start", "let's start", "begin", "get started")은 `start.md`와 `CLAUDE.md`에서 직접 처리된다.
 
 ## Intent Mapping
 
@@ -31,7 +34,7 @@ This skill activates when the user issues church administration commands in Kore
 | Korean Command Pattern | System Action | Route |
 |----------------------|---------------|-------|
 | "시작", "시작하자", "시작해줘", "시작합니다" | Show interactive main menu | `/start` command |
-| "워크플로우 시작", "워크플로우를 시작하자" | Show interactive main menu | `/start` command |
+| "워크플로우 시작", "워크플로우를 시작하자", "작업을 시작하자" | Show interactive main menu | `/start` command |
 | "메뉴", "메뉴 보여줘", "메뉴판" | Show interactive main menu | `/start` command |
 | "뭐 할 수 있어?", "뭘 할 수 있어?", "가능한 기능" | Show interactive main menu | `/start` command |
 | "도움말", "사용법", "어떻게 해?", "어떻게 사용해?" | Show interactive main menu | `/start` command |

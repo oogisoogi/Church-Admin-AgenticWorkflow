@@ -50,9 +50,9 @@ cd AgenticWorkflow/church-admin
 claude --init              # 사전 검증 (CA-1 ~ CA-8)
 claude                     # 시스템 시작
 
-# 3. "시작" 입력 → 대화형 메뉴 자동 표시
-"시작"                      # → 상태 수집 + 환영 배너 + 대화형 메뉴
-"시작하자"                  # → 동일 (트리거 패턴 17개 지원)
+# 3. "시작" 입력 → 실행 모드 선택 + 대화형 메뉴
+"시작"                      # → 스마트 라우터 → 모드 선택 (CLI / Dashboard)
+"시작하자"                  # → 동일 ("start", "begin" 등 영어 패턴도 지원)
 
 # 4. 또는 한국어로 직접 명령
 "주보 만들어줘"              # 주보 생성
@@ -66,7 +66,7 @@ cd church-admin
 streamlit run dashboard/app.py     # 웹 UI에서 모든 기능 사용
 ```
 
-> **Mandatory Start Menu**: 구체적 작업 지시 없는 인사말이나 "시작" 계열 명령은 자동으로 `show_menu.py` 실행 → 현재 상태 기반 대화형 메뉴(`AskUserQuestion`)를 표시합니다. CLI 경험 없는 사용자도 메뉴에서 선택만으로 모든 기능에 접근할 수 있습니다.
+> **Mandatory Start Menu**: 구체적 작업 지시 없는 인사말이나 "시작" 계열 명령은 자동으로 `start_router.py` 실행 → 실행 모드 선택(CLI / Dashboard) → 대화형(CLI) 모드 시 `show_menu.py` 실행 → 현재 상태 기반 대화형 메뉴(`AskUserQuestion`)를 표시합니다. CLI 경험 없는 사용자도 메뉴에서 선택만으로 모든 기능에 접근할 수 있습니다.
 
 상세 설치 가이드: [`church-admin/docs/quick-start.md`](church-admin/docs/quick-start.md) (한국어: [`quick-start.ko.md`](church-admin/docs/quick-start.ko.md))
 
@@ -114,7 +114,8 @@ church-admin/
 │       ├── SKILL.md
 │       └── references/
 ├── scripts/                        # 파서, 검증, 유틸리티 스크립트
-│   ├── show_menu.py                # 상태 기반 대화형 메뉴 JSON 생성
+│   ├── start_router.py              # 스마트 라우터 — 모드 선택 + P1 display blocks
+│   ├── show_menu.py                # 상태 기반 대화형 메뉴 JSON 생성 (CLI 모드)
 │   ├── validate_all.py             # 전체 검증 (29개 규칙 집계)
 │   ├── tier_a_parser.py            # Excel/CSV 파서
 │   ├── tier_b_parser.py            # Word/PDF 파서
@@ -197,7 +198,7 @@ church-admin/
 | **적대적 리뷰** | `@reviewer` + `@fact-checker` — 독립적 품질 검증 |
 | **Context Preservation** | 스냅샷 + Knowledge Archive + RLM 복원 |
 | **코딩 기준점 (CAP)** | CAP-1 사고 우선, CAP-2 단순성, CAP-3 목표 기반, CAP-4 외과적 변경 |
-| **Mandatory Start Menu** | 인사말·시작 명령 시 `show_menu.py` → 상태 기반 대화형 메뉴 자동 표시 |
+| **Mandatory Start Menu** | 인사말·시작 명령 시 `start_router.py` → 모드 선택 → 대화형(CLI) 시 `show_menu.py` → 상태 기반 메뉴 자동 표시 |
 | **대시보드 P1 봉쇄** | 대시보드가 LLM 밖에서 Python으로 직접 P1 검증 실행 — 할루시네이션 원천봉쇄 |
 
 ## 구축 과정

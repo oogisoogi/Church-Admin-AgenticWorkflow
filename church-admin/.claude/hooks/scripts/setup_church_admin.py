@@ -78,6 +78,8 @@ EXPECTED_SCRIPTS = [
     "template_scanner.py",
     "hitl_confirmation.py",
     "daily-backup.sh",
+    "start_router.py",
+    "show_menu.py",
 ]
 
 

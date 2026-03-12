@@ -8,7 +8,7 @@ Command Bridge — 사용자 입력을 기존 명령어 체계로 변환.
     1. .claude/commands/generate-bulletin.md (38줄)가 이미 상세한
        실행 지시를 포함 — 3줄짜리 프롬프트로 대체하면 품질 하락
     2. 프롬프트 중복 시 shotgun surgery — 원본 변경 시 대시보드 동기화 필요
-    3. Claude Code는 SKILL.md의 41개 NL 패턴을 자동 인식
+    3. Claude Code는 SKILL.md의 47개 NL 패턴을 자동 인식
 
   따라서:
     - 카드 선택 → 기존 NL 트리거 패턴을 그대로 전달

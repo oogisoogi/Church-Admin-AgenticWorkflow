@@ -64,7 +64,12 @@ python3 scripts/start_router.py --state state.yaml
 
 ### Data File Sole-Writer Map
 
-Each data file has exactly ONE designated writer agent. This is enforced by `guard_data_files.py` (PreToolUse hook).
+Each data file has exactly ONE designated writer agent. This is enforced by `guard_data_files.py` (PreToolUse hook):
+
+1. Edit/Write 도구 호출 시 → `guard_data_files.py` 자동 실행
+2. `CLAUDE_AGENT_NAME` 환경변수를 아래 Sole-Writer Matrix와 대조
+3. **일치** → exit code 0 (쓰기 허용) → PostToolUse `validate_yaml_syntax.py` 구문 검증
+4. **불일치** → exit code 2 (**쓰기 차단**) + stderr 피드백 → 재시도 금지, Orchestrator에게 위임
 
 | Data File | Sole Writer | Validator | Sensitivity | Deletion Policy |
 |-----------|------------|-----------|-------------|-----------------|
@@ -79,16 +84,18 @@ Each data file has exactly ONE designated writer agent. This is enforced by `gua
 
 ### Agent Roster
 
-| Agent | Role | Writes To | Depends On |
-|-------|------|-----------|------------|
-| `bulletin-generator` | Weekly bulletin generation | `data/bulletin-data.yaml`, `bulletins/` | members (birthday), schedule (services) |
-| `newcomer-tracker` | Newcomer journey pipeline | `data/newcomers.yaml` | members (settlement handoff) |
-| `member-manager` | Member CRUD + lifecycle | `data/members.yaml` | newcomers (settlement intake) |
-| `finance-recorder` | Offerings, expenses, receipts | `data/finance.yaml` | members (donor cross-ref) |
-| `schedule-manager` | Services, events, facilities | `data/schedule.yaml` | — |
-| `document-generator` | Certificates, letters, minutes | `docs/generated/` | members, schedule |
-| `data-ingestor` | Parse inbox files → staging | `inbox/staging/`, `inbox/processed/`, `inbox/errors/` | — |
-| `template-scanner` | Image → YAML template | `templates/` | — |
+All agents are **sub-agents** invoked sequentially by the Orchestrator (main Claude session). Agent-teams/Swarm are not used — linear data dependencies make sequential orchestration safer for SOT integrity.
+
+| Agent | Role | Writes To | Depends On | Boundary |
+|-------|------|-----------|------------|----------|
+| `bulletin-generator` | Weekly bulletin generation | `data/bulletin-data.yaml`, `bulletins/` | members (birthday), schedule (services) | Read-only: members, schedule, finance |
+| `newcomer-tracker` | Newcomer journey pipeline | `data/newcomers.yaml` | members (settlement handoff) | Read-only: members. No finance access |
+| `member-manager` | Member CRUD + lifecycle | `data/members.yaml` | newcomers (settlement intake) | No finance/schedule writes |
+| `finance-recorder` | Offerings, expenses, receipts | `data/finance.yaml` | members (donor cross-ref) | No member writes. HitL mandatory |
+| `schedule-manager` | Services, events, facilities | `data/schedule.yaml` | — | No cross-file writes |
+| `document-generator` | Certificates, letters, minutes | `docs/generated/` | members, schedule | Read-only: all data files |
+| `data-ingestor` | Parse inbox files → staging | `inbox/staging/`, `inbox/processed/`, `inbox/errors/` | — | Never writes to `data/` |
+| `template-scanner` | Image → YAML template | `templates/` | — | Never writes to `data/` or `docs/` |
 
 ### Agent Dependency Graph
 
@@ -104,6 +111,16 @@ template-scanner → [YAML templates]          finance-recorder       (settlemen
                   bulletin-generator ← members (birthday) + schedule (services)
 ```
 
+### Inbox 3-Tier Pipeline
+
+| Tier | Input | Parser | Reliability | HitL |
+|------|-------|--------|-------------|------|
+| A | Excel/CSV (`.xlsx`, `.csv`) | `tier_a_parser.py` | High (structured) | Confirmation |
+| B | Word/PDF (`.docx`, `.pdf`) | `tier_b_parser.py` | Medium (semi-structured) | Correction |
+| C | Images (`.jpg`, `.png`) | `tier_c_parser.py` | Low (vision-dependent) | Full review |
+
+All tiers output to `inbox/staging/` as JSON → human review via `hitl_confirmation.py` → approved data merged by designated writer agent.
+
 ## Data Sensitivity
 
 The following files contain PII and are `.gitignore`'d:
@@ -113,6 +130,14 @@ The following files contain PII and are `.gitignore`'d:
 - `data/newcomers.yaml` — Newcomer personal information
 
 **These files must NEVER be committed to a public repository.**
+
+### PII Handling Rules
+
+- **Display**: 이름 뒤 1자 마스킹 (e.g., "김철수" → "김철*")
+- **Search results**: Phone/address 부분 마스킹 (010-****-5678)
+- **Export/Print**: Full PII는 HitL 확인 후에만 허용
+- **Log files**: PII 절대 금지 — validation scripts, hook outputs, snapshots에 개인정보 기록 불가
+- **Commit guard**: `.gitignore`에 `data/members.yaml`, `data/finance.yaml`, `data/newcomers.yaml` 포함 필수
 
 ## Finance Safety
 
@@ -131,6 +156,21 @@ All agents must normalize Korean church terms using `data/church-glossary.yaml`.
 - Worship (예배): 찬양, 기도, 봉헌, 축도, 주보
 - Finance (재정): 십일조, 감사헌금, 건축헌금, 선교헌금
 - Sacraments (성례): 세례, 유아세례, 입교, 성찬식
+
+## Quality Assurance: 4-Layer Stack
+
+Every workflow step passes through up to 4 verification layers before advancing:
+
+| Layer | Trigger | Enforced By | Outcome |
+|-------|---------|------------|---------|
+| L0 | After each step | Hook `validate_step_output()` | File exists + ≥100 bytes + non-empty |
+| L1 | After step output | Agent self-check (Verification criteria) | Semantic correctness vs requirements |
+| L1.5 | After L1 passes | Agent Pre-mortem + F/C/L scoring | pACS = min(F,C,L). RED < 50 → rework |
+| L2 | High-risk steps only | `@reviewer` / `@fact-checker` sub-agent | Independent adversarial challenge |
+
+**Progression rule**: L0 is mandatory for all steps. L1 only when `Verification:` field exists. L1.5 only after L1 PASS. L2 only when `Review:` field exists. Each layer's PASS is prerequisite for the next.
+
+**Failure handling**: L1/L1.5/L2 FAIL → Abductive Diagnosis → retry (max 2, ULW: 3). Budget enforced by `validate_retry_budget.py`.
 
 ## Validation Infrastructure
 
@@ -152,7 +192,7 @@ All 29 rules must pass before any workflow advances.
 
 ## NL Interface
 
-The Korean natural language interface is defined in `.claude/skills/church-admin/SKILL.md`. It maps 41 Korean command patterns to system actions across 8 categories: bulletin, newcomer, member, finance, schedule, document, data import, and system commands.
+The Korean natural language interface is defined in `.claude/skills/church-admin/SKILL.md`. It maps 47 Korean command patterns to system actions across 8 categories: bulletin, newcomer, member, finance, schedule, document, data import, and system commands.
 
 ## Workflows
 
@@ -181,7 +221,7 @@ streamlit run dashboard/app.py
 | `engine/sot_watcher.py` | `state.yaml` real-time polling | Read-only |
 | `engine/context_builder.py` | Cold Start solver — AST rule extraction + `--append-system-prompt` | Read-only |
 | `engine/post_execution_validator.py` | P1 independent verification — runs `validate_*.py` outside LLM | Read-only |
-| `engine/command_bridge.py` | NL routing (41 Korean patterns) | Read-only |
+| `engine/command_bridge.py` | NL routing (47 Korean patterns) | Read-only |
 | `components/hitl_panel.py` | HitL approval UI with P1 validation signal | Read-only |
 
 **Design principles**: Dashboard is read-only against SOT. Zero modification to existing hooks/agents/skills. Post-Execution Validator runs P1 checks independently of LLM output (hallucination prevention).
@@ -197,3 +237,13 @@ This system inherits the full AgenticWorkflow genome:
 - **Adversarial Review**: Generator-Critic pattern for output quality
 - **Coding Anchor Points**: CAP-1 (think before code), CAP-2 (simplicity), CAP-3 (goal-based), CAP-4 (surgical changes)
 - **Dashboard P1 Prevention**: Post-execution independent validation outside LLM control
+
+## Architecture Reference
+
+For detailed design philosophy, pattern rationale, and system architecture diagrams, see `CHURCH-ADMIN-ARCHITECTURE-AND-PHILOSOPHY.md`:
+
+- §1: System DNA & Constitutional Principles (inherited genome)
+- §2: SOT Architecture & Data Flow (single-writer enforcement)
+- §3: Agent Orchestration Pattern (sequential sub-agent delegation)
+- §4: Quality Assurance Pipeline (4-layer stack details)
+- §5: Inbox Pipeline & Scan-and-Replicate Engine (3-tier parsing)

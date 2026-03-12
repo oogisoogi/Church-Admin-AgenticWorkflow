@@ -133,15 +133,14 @@ The following files contain PII and are `.gitignore`'d:
 
 ### PII Handling Rules
 
-- **Display**: 이름 뒤 1자 마스킹 (e.g., "김철수" → "김철*")
-- **Search results**: Phone/address 부분 마스킹 (010-****-5678)
-- **Export/Print**: Full PII는 HitL 확인 후에만 허용
-- **Log files**: PII 절대 금지 — validation scripts, hook outputs, snapshots에 개인정보 기록 불가
-- **Commit guard**: `.gitignore`에 `data/members.yaml`, `data/finance.yaml`, `data/newcomers.yaml` 포함 필수
+- **관리자 표시**: Full name/연락처 표시 허용 (행정 간사, 담임 목사는 업무상 필수)
+- **시스템 로그**: context-snapshots, hook 출력에 PII 직접 기록 최소화
+- **Git 보호**: `.gitignore`에 `data/members.yaml`, `data/finance.yaml`, `data/newcomers.yaml` 포함 필수
+- **외부 공유**: 교회 외부로 데이터 전송 시 HitL 확인 필수
 
 ## Finance Safety
 
-Finance operations have **autopilot permanently disabled**. This is triple-enforced:
+Finance operations have **autopilot permanently disabled**. This is triple-declared and validated by `validate_finance_safety.py` (FS1-FS3):
 
 1. `state.yaml` → `config.autopilot.finance_override: false`
 2. `finance-recorder.md` → explicit autopilot prohibition in agent spec

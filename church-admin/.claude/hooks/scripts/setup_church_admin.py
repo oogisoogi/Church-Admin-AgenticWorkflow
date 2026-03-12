@@ -80,6 +80,8 @@ EXPECTED_SCRIPTS = [
     "daily-backup.sh",
     "start_router.py",
     "show_menu.py",
+    "validate_claude_md.py",
+    "validate_finance_safety.py",
 ]
 
 
@@ -257,6 +259,70 @@ def main():
         total_passed += 1
     else:
         print(f"  \u2717 CLAUDE.md: NOT FOUND — agents lack domain-specific instructions")
+        total_failed += 1
+
+    # 9. CLAUDE.md factual accuracy (P1 hallucination prevention)
+    total_checks += 1
+    try:
+        import subprocess
+        proc = subprocess.run(
+            [sys.executable, os.path.join(church_dir, "scripts/validate_claude_md.py"),
+             "--project-dir", church_dir],
+            capture_output=True, text=True, timeout=15,
+        )
+        if proc.stdout.strip():
+            import json as _json
+            result = _json.loads(proc.stdout)
+            if result.get("valid"):
+                cm_passed = result.get("summary", {}).get("passed", 0)
+                cm_total = result.get("summary", {}).get("total", 0)
+                print(f"  \u2713 CLAUDE.md accuracy: {cm_passed}/{cm_total} checks (CM1-CM6)")
+                total_passed += 1
+            else:
+                cm_errors = []
+                for c in result.get("checks", []):
+                    if not c.get("passed"):
+                        cm_errors.extend(c.get("errors", []))
+                print(f"  \u2717 CLAUDE.md accuracy: DRIFT DETECTED")
+                for e in cm_errors[:3]:
+                    print(f"      {e}")
+                total_failed += 1
+        else:
+            print(f"  \u2717 CLAUDE.md accuracy: No output from validator")
+            total_failed += 1
+    except Exception as exc:
+        print(f"  \u2717 CLAUDE.md accuracy: Error — {exc}")
+        total_failed += 1
+
+    # 10. Finance safety triple-check (P1 hallucination prevention)
+    total_checks += 1
+    try:
+        proc = subprocess.run(
+            [sys.executable, os.path.join(church_dir, "scripts/validate_finance_safety.py"),
+             "--project-dir", church_dir],
+            capture_output=True, text=True, timeout=15,
+        )
+        if proc.stdout.strip():
+            result = _json.loads(proc.stdout)
+            if result.get("valid"):
+                fs_passed = result.get("summary", {}).get("passed", 0)
+                fs_total = result.get("summary", {}).get("total", 0)
+                print(f"  \u2713 Finance safety: {fs_passed}/{fs_total} checks (FS1-FS3)")
+                total_passed += 1
+            else:
+                fs_errors = []
+                for c in result.get("checks", []):
+                    if not c.get("passed"):
+                        fs_errors.extend(c.get("errors", []))
+                print(f"  \u2717 Finance safety: VIOLATION DETECTED")
+                for e in fs_errors[:3]:
+                    print(f"      {e}")
+                total_failed += 1
+        else:
+            print(f"  \u2717 Finance safety: No output from validator")
+            total_failed += 1
+    except Exception as exc:
+        print(f"  \u2717 Finance safety: Error — {exc}")
         total_failed += 1
 
     # Summary
